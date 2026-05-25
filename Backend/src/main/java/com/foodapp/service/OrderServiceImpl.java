@@ -44,6 +44,16 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalStateException("Cart is empty");
         }
 
+        // Ensure all items belong to the same restaurant
+        Long firstRestaurantId = cart.getItems().get(0).getMenuItem().getRestaurant().getId();
+        boolean multipleRestaurants = cart.getItems().stream()
+                .anyMatch(item -> !item.getMenuItem().getRestaurant().getId().equals(firstRestaurantId));
+
+        if (multipleRestaurants) {
+            log.warn("Order placement failed - cart contains items from multiple restaurants for user ID: {}", userId);
+            throw new IllegalStateException("You cannot place an order with items from multiple restaurants.");
+        }
+
         // Get restaurant from the first cart item's menu item
         Restaurant restaurant = cart.getItems().get(0).getMenuItem().getRestaurant();
 
