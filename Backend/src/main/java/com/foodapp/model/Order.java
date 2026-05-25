@@ -52,6 +52,9 @@ public class Order {
     @Column
     private String deliveryAddress;
 
+    @Column
+    private String contactNumber;
+
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

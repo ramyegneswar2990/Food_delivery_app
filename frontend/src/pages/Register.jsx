@@ -8,7 +8,7 @@ export default function Register() {
   const navigate = useNavigate();
   const addToast = useToast();
 
-  const [form, setForm] = useState({ name: '', email: '', password: '', address: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', address: '', phone: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -26,6 +26,8 @@ export default function Register() {
     if (!form.email.trim()) errs.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email address';
     if (!form.address.trim()) errs.address = 'Delivery address is required';
+    if (!form.phone.trim()) errs.phone = 'Phone number is required';
+    else if (!/^\d{10}$/.test(form.phone)) errs.phone = 'Enter a valid 10-digit phone number';
     if (!form.password) errs.password = 'Password is required';
     else if (form.password.length < 6) errs.password = 'Password must be at least 6 characters';
     return errs;
@@ -119,6 +121,21 @@ export default function Register() {
                 style={{ resize: 'vertical' }}
               />
               {errors.address && <span className="form-error">{errors.address}</span>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="reg-phone">Phone number</label>
+              <input
+                id="reg-phone"
+                name="phone"
+                type="tel"
+                className={`form-input ${errors.phone ? 'input-error' : ''}`}
+                placeholder="9876543210"
+                value={form.phone}
+                onChange={handleChange}
+                maxLength="10"
+              />
+              {errors.phone && <span className="form-error">{errors.phone}</span>}
             </div>
 
             <div className="form-group">

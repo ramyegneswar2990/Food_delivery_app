@@ -20,4 +20,5 @@ public class OrderResponse {
     private String status;
     private LocalDateTime orderedAt;
     private String deliveryAddress;
+    private String contactNumber;
 }

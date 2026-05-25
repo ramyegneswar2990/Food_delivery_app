@@ -70,7 +70,8 @@ function OrderCard({ order, onCancelled }) {
           </div>
           {order.deliveryAddress && (
             <div className="order-address" style={{ marginTop: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              📍 {order.deliveryAddress}
+              📍 {order.deliveryAddress} 
+              {order.contactNumber && <span style={{ marginLeft: '10px' }}>📞 {order.contactNumber}</span>}
             </div>
           )}
         </div>

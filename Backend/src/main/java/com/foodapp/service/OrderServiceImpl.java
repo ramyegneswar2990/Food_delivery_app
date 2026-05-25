@@ -52,6 +52,7 @@ public class OrderServiceImpl implements OrderService {
                 .restaurant(restaurant)
                 .status(OrderStatus.PLACED)
                 .deliveryAddress(user.getAddress())
+                .contactNumber(user.getPhone())
                 .orderedAt(LocalDateTime.now())
                 .build();
 
@@ -207,6 +208,7 @@ public class OrderServiceImpl implements OrderService {
                 .status(order.getStatus().name())
                 .orderedAt(order.getOrderedAt())
                 .deliveryAddress(order.getDeliveryAddress())
+                .contactNumber(order.getContactNumber())
                 .build();
     }
 }
