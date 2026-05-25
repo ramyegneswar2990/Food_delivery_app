@@ -24,6 +24,7 @@ export default function Home() {
   // Filters
   const [search,     setSearch]     = useState('');
   const [cuisine,    setCuisine]    = useState('All');
+  const [city,       setCity]       = useState('All Cities');
   const [minRating,  setMinRating]  = useState(0);
   const [sortBy,     setSortBy]     = useState('default');
 
@@ -52,6 +53,18 @@ export default function Home() {
     return ['All', ...Array.from(set).sort()];
   }, [restaurants]);
 
+  // Derive unique cities list (assuming address ends with city or has city)
+  const cities = useMemo(() => {
+    const set = new Set(
+      restaurants.map((r) => {
+        if (!r.address) return null;
+        const parts = r.address.split(',');
+        return parts[parts.length - 1].trim(); // Get the last part of address as City
+      }).filter(Boolean)
+    );
+    return ['All Cities', ...Array.from(set).sort()];
+  }, [restaurants]);
+
   // Apply all filters + sort
   const filtered = useMemo(() => {
     let list = restaurants;
@@ -70,6 +83,13 @@ export default function Home() {
       list = list.filter((r) => r.cuisine === cuisine);
     }
 
+    if (city !== 'All Cities') {
+      list = list.filter((r) => {
+        if (!r.address) return false;
+        return r.address.toLowerCase().includes(city.toLowerCase());
+      });
+    }
+
     if (minRating > 0) {
       list = list.filter((r) => (r.rating || 0) >= minRating);
     }
@@ -81,13 +101,14 @@ export default function Home() {
     }
 
     return list;
-  }, [restaurants, search, cuisine, minRating, sortBy]);
+  }, [restaurants, search, cuisine, city, minRating, sortBy]);
 
-  const hasActiveFilters = search || cuisine !== 'All' || minRating > 0 || sortBy !== 'default';
+  const hasActiveFilters = search || cuisine !== 'All' || city !== 'All Cities' || minRating > 0 || sortBy !== 'default';
 
   const clearAll = () => {
     setSearch('');
     setCuisine('All');
+    setCity('All Cities');
     setMinRating(0);
     setSortBy('default');
   };
@@ -158,8 +179,20 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Right controls: Rating + Sort + Clear */}
+            {/* Right controls: City + Rating + Sort + Clear */}
             <div className="filter-controls">
+              <select
+                id="city-filter"
+                className="filter-select"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                aria-label="Filter by city"
+              >
+                {cities.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+
               <select
                 id="rating-filter"
                 className="filter-select"

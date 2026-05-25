@@ -62,7 +62,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // ── 1. Spice Garden — Indian ─────────────────────────────────────────
         Restaurant spiceGarden = seedRestaurant("Spice Garden", "Indian",
-                "12 Curry Lane, Bengaluru, KA 560001",
+                "12 Curry Lane, Vijayawada",
                 "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800", 4.5);
         if (spiceGarden != null) {
             menuItemRepository.saveAll(List.of(
@@ -95,7 +95,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // ── 2. Pizza Republic — Italian ──────────────────────────────────────
         Restaurant pizzaRepublic = seedRestaurant("Pizza Republic", "Italian",
-                "5 Olive Street, Mumbai, MH 400001",
+                "5 Olive Street, Mangalagiri",
                 "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800", 4.3);
         if (pizzaRepublic != null) {
             menuItemRepository.saveAll(List.of(
@@ -128,7 +128,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // ── 3. Dragon Wok — Chinese ──────────────────────────────────────────
         Restaurant dragonWok = seedRestaurant("Dragon Wok", "Chinese",
-                "88 Bamboo Road, Delhi, DL 110001",
+                "88 Bamboo Road, Vijayawada",
                 "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800", 4.1);
         if (dragonWok != null) {
             menuItemRepository.saveAll(List.of(
@@ -157,7 +157,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // ── 4. Burger Barn — American ────────────────────────────────────────
         Restaurant burgerBarn = seedRestaurant("Burger Barn", "American",
-                "27 Route 66, Hyderabad, TS 500001",
+                "27 Route 66, Mangalagiri",
                 "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800", 4.4);
         if (burgerBarn != null) {
             menuItemRepository.saveAll(List.of(
@@ -186,7 +186,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // ── 5. Tokyo Bites — Japanese ────────────────────────────────────────
         Restaurant tokyoBites = seedRestaurant("Tokyo Bites", "Japanese",
-                "14 Sakura Avenue, Chennai, TN 600001",
+                "14 Sakura Avenue, Vijayawada",
                 "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800", 4.6);
         if (tokyoBites != null) {
             menuItemRepository.saveAll(List.of(
@@ -215,7 +215,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // ── 6. Taco Loco — Mexican ───────────────────────────────────────────
         Restaurant tacoLoco = seedRestaurant("Taco Loco", "Mexican",
-                "3 Fiesta Road, Pune, MH 411001",
+                "3 Fiesta Road, Mangalagiri",
                 "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800", 4.2);
         if (tacoLoco != null) {
             menuItemRepository.saveAll(List.of(
@@ -244,7 +244,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // ── 7. The Tandoor House — North Indian ──────────────────────────────
         Restaurant tandoorHouse = seedRestaurant("The Tandoor House", "North Indian",
-                "9 Mughal Garden Road, Jaipur, RJ 302001",
+                "9 Mughal Garden Road, Vijayawada",
                 "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=800", 4.7);
         if (tandoorHouse != null) {
             menuItemRepository.saveAll(List.of(
@@ -277,7 +277,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // ── 8. Green Bowl — Healthy / Salads ─────────────────────────────────
         Restaurant greenBowl = seedRestaurant("Green Bowl", "Healthy",
-                "22 Wellness Lane, Bengaluru, KA 560034",
+                "22 Wellness Lane, Mangalagiri",
                 "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800", 4.0);
         if (greenBowl != null) {
             menuItemRepository.saveAll(List.of(
@@ -301,6 +301,90 @@ public class DataSeeder implements CommandLineRunner {
                     "Thick acai blend topped with granola, banana, strawberries, and honey.",
                     229.0, "Bowls", greenBowl,
                     "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=400")
+            ));
+        }
+
+        // ── 9. Bawarchi — Indian ─────────────────────────────────────────────
+        Restaurant bawarchi = seedRestaurant("Bawarchi", "Indian",
+                "1 RTC X Roads, Vijayawada",
+                "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=800", 4.8);
+        if (bawarchi != null) {
+            menuItemRepository.saveAll(List.of(
+                menuItem("Hyderabadi Chicken Dum Biryani",
+                    "Authentic slow-cooked biryani with tender chicken and aromatic spices.",
+                    320.0, "Main Course", bawarchi,
+                    "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400"),
+                menuItem("Mutton Keema Masala",
+                    "Minced lamb cooked with rich Indian spices and green peas.",
+                    450.0, "Main Course", bawarchi,
+                    "https://images.unsplash.com/photo-1544681280-d2dc1e050304?w=400"),
+                menuItem("Apollo Fish",
+                    "Spicy and tangy boneless fish starter tossed in curry leaves and yoghurt.",
+                    310.0, "Starters", bawarchi,
+                    "https://images.unsplash.com/photo-1626082896492-766af4eb6501?w=400")
+            ));
+        }
+
+        // ── 10. Sweet Magic — Desserts ───────────────────────────────────────
+        Restaurant sweetMagic = seedRestaurant("Sweet Magic", "Desserts",
+                "77 Sugar Street, Mangalagiri",
+                "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800", 4.6);
+        if (sweetMagic != null) {
+            menuItemRepository.saveAll(List.of(
+                menuItem("Kaju Katli",
+                    "Classic Indian sweet made with premium cashews and silver leaf.",
+                    250.0, "Sweets", sweetMagic,
+                    "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400"),
+                menuItem("Rasmalai",
+                    "Soft paneer discs soaked in thickened, sweetened, and saffron-infused milk.",
+                    120.0, "Sweets", sweetMagic,
+                    "https://images.unsplash.com/photo-1624806792059-a292d3f78950?w=400"),
+                menuItem("Motichoor Ladoo",
+                    "Fine besan pearls fried in ghee and shaped into delicious rounds.",
+                    150.0, "Sweets", sweetMagic,
+                    "https://images.unsplash.com/photo-1579803154884-6338fb5afc2c?w=400")
+            ));
+        }
+
+        // ── 11. Barbeque Nation — BBQ ────────────────────────────────────────
+        Restaurant bbqNation = seedRestaurant("Barbeque Nation", "BBQ",
+                "15 Grill Avenue, Vijayawada",
+                "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800", 4.5);
+        if (bbqNation != null) {
+            menuItemRepository.saveAll(List.of(
+                menuItem("Grilled Prawns",
+                    "Succulent prawns marinated in a fiery coastal spice blend and grilled to perfection.",
+                    420.0, "Starters", bbqNation,
+                    "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400"),
+                menuItem("Tandoori Mushrooms",
+                    "Button mushrooms stuffed with cheese and grilled in a clay oven.",
+                    280.0, "Starters", bbqNation,
+                    "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400"),
+                menuItem("Non-Veg BBQ Buffet Box",
+                    "Assortment of chicken tikka, fish grill, biryani, and dessert in a box.",
+                    899.0, "Combos", bbqNation,
+                    "https://images.unsplash.com/photo-1544025162-83690d96d997?w=400")
+            ));
+        }
+
+        // ── 12. Subway — Healthy ─────────────────────────────────────────────
+        Restaurant subway = seedRestaurant("Subway", "Healthy",
+                "4 Fresh Road, Mangalagiri",
+                "https://images.unsplash.com/photo-1619881589316-56c7f9e6b587?w=800", 4.1);
+        if (subway != null) {
+            menuItemRepository.saveAll(List.of(
+                menuItem("Roasted Chicken Sub",
+                    "6-inch honey oat bread filled with roasted chicken slices and fresh veggies.",
+                    220.0, "Subs", subway,
+                    "https://images.unsplash.com/photo-1619881589316-56c7f9e6b587?w=400"),
+                menuItem("Paneer Tikka Sub",
+                    "6-inch parmesan oregano bread loaded with spicy paneer tikka and sauces.",
+                    210.0, "Subs", subway,
+                    "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400"),
+                menuItem("Double Choco Chip Cookie",
+                    "Freshly baked gooey chocolate cookie.",
+                    60.0, "Desserts", subway,
+                    "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400")
             ));
         }
 
