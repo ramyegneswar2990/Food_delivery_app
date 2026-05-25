@@ -51,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
                 .user(user)
                 .restaurant(restaurant)
                 .status(OrderStatus.PLACED)
+                .deliveryAddress(user.getAddress())
                 .orderedAt(LocalDateTime.now())
                 .build();
 
@@ -205,6 +206,7 @@ public class OrderServiceImpl implements OrderService {
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus().name())
                 .orderedAt(order.getOrderedAt())
+                .deliveryAddress(order.getDeliveryAddress())
                 .build();
     }
 }

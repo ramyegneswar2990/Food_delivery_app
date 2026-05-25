@@ -3,15 +3,14 @@ import api from '../api/axiosConfig';
 import { useToast } from '../components/Toast';
 import './OrderHistory.css';
 
-// Only PLACED, CONFIRMED, CANCELLED remain
+// Only PLACED, CANCELLED remain
 const STATUS_CONFIG = {
   PLACED:     { label: 'Placed',     class: 'badge-placed',     icon: '📦' },
-  CONFIRMED:  { label: 'Confirmed',  class: 'badge-confirmed',  icon: '✅' },
   CANCELLED:  { label: 'Cancelled',  class: 'badge-cancelled',  icon: '❌' },
 };
 
 // Orders that can still be cancelled
-const CANCELLABLE = new Set(['PLACED', 'CONFIRMED']);
+const CANCELLABLE = new Set(['PLACED']);
 
 function getStatusInfo(status) {
   return STATUS_CONFIG[status?.toUpperCase()] || { label: status || 'Unknown', class: '', icon: '📋' };
@@ -69,6 +68,11 @@ function OrderCard({ order, onCancelled }) {
             <span className="order-date">🕐 {formatDate(date)}</span>
             <span className="order-total">₹{parseFloat(total).toFixed(2)}</span>
           </div>
+          {order.deliveryAddress && (
+            <div className="order-address" style={{ marginTop: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              📍 {order.deliveryAddress}
+            </div>
+          )}
         </div>
         <div className="order-card-actions">
           <span

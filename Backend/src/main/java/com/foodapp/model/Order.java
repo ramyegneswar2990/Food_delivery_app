@@ -49,6 +49,9 @@ public class Order {
     @Column(updatable = false)
     private LocalDateTime orderedAt;
 
+    @Column
+    private String deliveryAddress;
+
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

@@ -19,4 +19,5 @@ public class OrderResponse {
     private Double totalAmount;
     private String status;
     private LocalDateTime orderedAt;
+    private String deliveryAddress;
 }

@@ -8,7 +8,7 @@ export default function Register() {
   const navigate = useNavigate();
   const addToast = useToast();
 
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', address: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -25,6 +25,7 @@ export default function Register() {
     if (!form.name.trim()) errs.name = 'Full name is required';
     if (!form.email.trim()) errs.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email address';
+    if (!form.address.trim()) errs.address = 'Delivery address is required';
     if (!form.password) errs.password = 'Password is required';
     else if (form.password.length < 6) errs.password = 'Password must be at least 6 characters';
     return errs;
@@ -103,6 +104,21 @@ export default function Register() {
                 autoComplete="email"
               />
               {errors.email && <span className="form-error">{errors.email}</span>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="reg-address">Delivery address</label>
+              <textarea
+                id="reg-address"
+                name="address"
+                className={`form-input ${errors.address ? 'input-error' : ''}`}
+                placeholder="123 Main St, Apt 4B, City"
+                value={form.address}
+                onChange={handleChange}
+                rows="2"
+                style={{ resize: 'vertical' }}
+              />
+              {errors.address && <span className="form-error">{errors.address}</span>}
             </div>
 
             <div className="form-group">

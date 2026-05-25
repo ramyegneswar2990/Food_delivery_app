@@ -28,6 +28,7 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
+            helper.setFrom("ramyegneswarseeram@gmail.com", "FoodApp");
             helper.setTo(user.getEmail());
             helper.setSubject("Welcome to FoodApp!");
             
@@ -63,6 +64,7 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
+            helper.setFrom("ramyegneswarseeram@gmail.com", "FoodApp");
             helper.setTo(user.getEmail());
             helper.setSubject("Order #" + order.getId() + " Confirmed!");
 
@@ -128,6 +130,7 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
+            helper.setFrom("ramyegneswarseeram@gmail.com", "FoodApp");
             helper.setTo(user.getEmail());
             helper.setSubject("Order #" + order.getId() + " Cancelled");
 

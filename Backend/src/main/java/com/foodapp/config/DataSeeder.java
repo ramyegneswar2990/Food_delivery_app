@@ -50,6 +50,7 @@ public class DataSeeder implements CommandLineRunner {
                 .name("Test User")
                 .email("test@food.com")
                 .password(encoder.encode("Test@123"))
+                .address("123 Foodie Lane, Tech Park, Bengaluru 560100")
                 .role("ROLE_USER")
                 .build());
         log.info("[DataSeeder] Seeded test user: test@food.com");

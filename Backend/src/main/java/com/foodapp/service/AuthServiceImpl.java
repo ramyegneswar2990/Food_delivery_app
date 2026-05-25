@@ -41,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .address(request.getAddress())
                 .role("ROLE_USER")
                 .build();
 
@@ -58,6 +59,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(savedUser.getEmail())
                 .name(savedUser.getName())
                 .userId(savedUser.getId())
+                .address(savedUser.getAddress())
                 .build();
     }
 
@@ -83,6 +85,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(user.getEmail())
                 .name(user.getName())
                 .userId(user.getId())
+                .address(user.getAddress())
                 .build();
     }
 }
