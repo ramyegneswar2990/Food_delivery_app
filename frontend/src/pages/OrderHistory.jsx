@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axiosConfig';
+import { useToast } from '../components/Toast';
 import './OrderHistory.css';
 
+// Only PLACED, CONFIRMED, CANCELLED remain
 const STATUS_CONFIG = {
   PLACED:     { label: 'Placed',     class: 'badge-placed',     icon: '📦' },
-  PREPARING:  { label: 'Preparing',  class: 'badge-preparing',  icon: '👨‍🍳' },
-  DELIVERED:  { label: 'Delivered',  class: 'badge-delivered',  icon: '✅' },
+  CONFIRMED:  { label: 'Confirmed',  class: 'badge-confirmed',  icon: '✅' },
   CANCELLED:  { label: 'Cancelled',  class: 'badge-cancelled',  icon: '❌' },
 };
+
+// Orders that can still be cancelled
+const CANCELLABLE = new Set(['PLACED', 'CONFIRMED']);
 
 function getStatusInfo(status) {
   return STATUS_CONFIG[status?.toUpperCase()] || { label: status || 'Unknown', class: '', icon: '📋' };
@@ -24,15 +28,36 @@ function formatDate(isoStr) {
   }
 }
 
-function OrderCard({ order }) {
-  const [expanded, setExpanded] = useState(false);
-  const statusInfo = getStatusInfo(order.status);
+function OrderCard({ order, onCancelled }) {
+  const addToast = useToast();
+  const [expanded, setExpanded]   = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [status, setStatus]       = useState(order.status);
 
-  const orderId   = order.orderId || order.id;
-  const restaurant = order.restaurantName || order.restaurant?.name || 'Restaurant';
-  const total     = order.totalAmount || order.total || 0;
-  const date      = order.createdAt  || order.placedAt || '';
-  const items     = order.items || order.orderItems || [];
+  const statusInfo  = getStatusInfo(status);
+  const orderId     = order.orderId || order.id;
+  const restaurant  = order.restaurantName || order.restaurant?.name || 'Restaurant';
+  const total       = order.totalAmount || order.total || 0;
+  const date        = order.orderedAt || order.createdAt || order.placedAt || '';
+  const items       = order.items || order.orderItems || [];
+  const canCancel   = CANCELLABLE.has(status?.toUpperCase());
+
+  const handleCancel = async () => {
+    if (!window.confirm(`Cancel order #${orderId}?`)) return;
+    setCancelling(true);
+    try {
+      const res = await api.put(`/orders/cancel/${orderId}`);
+      const updated = res.data?.data || res.data;
+      const newStatus = updated?.status || 'CANCELLED';
+      setStatus(newStatus);
+      addToast(`Order #${orderId} cancelled successfully`, 'info');
+      if (onCancelled) onCancelled(orderId);
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to cancel order', 'error');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <article className="order-card" aria-label={`Order #${orderId}`}>
@@ -53,6 +78,7 @@ function OrderCard({ order }) {
           >
             {statusInfo.icon} {statusInfo.label}
           </span>
+
           {items.length > 0 && (
             <button
               className="toggle-btn"
@@ -62,6 +88,18 @@ function OrderCard({ order }) {
               id={`toggle-order-${orderId}`}
             >
               {expanded ? '▲ Hide' : '▼ Details'}
+            </button>
+          )}
+
+          {canCancel && (
+            <button
+              id={`cancel-order-${orderId}`}
+              className={`btn btn-danger btn-sm cancel-order-btn ${cancelling ? 'loading' : ''}`}
+              onClick={handleCancel}
+              disabled={cancelling}
+              aria-label={`Cancel order #${orderId}`}
+            >
+              {cancelling ? <span className="btn-spinner" /> : '✕ Cancel'}
             </button>
           )}
         </div>
@@ -76,8 +114,9 @@ function OrderCard({ order }) {
         >
           <ul>
             {items.map((item, idx) => {
-              const name = item.name || item.menuItemName || item.menuItem?.name || `Item ${idx + 1}`;
-              const qty  = item.quantity || 1;
+              // OrderItemDTO uses 'itemName'
+              const name  = item.itemName || item.name || item.menuItemName || item.menuItem?.name || `Item ${idx + 1}`;
+              const qty   = item.quantity || 1;
               const price = item.price || item.unitPrice || item.menuItem?.price || 0;
               return (
                 <li key={idx} className="order-item-row">
@@ -95,10 +134,10 @@ function OrderCard({ order }) {
 }
 
 export default function OrderHistory() {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders]   = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('ALL');
+  const [error, setError]     = useState(null);
+  const [filter, setFilter]   = useState('ALL');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -117,6 +156,15 @@ export default function OrderHistory() {
 
     return () => controller.abort();
   }, []);
+
+  // When an order is cancelled, update its status in local state
+  const handleCancelled = (orderId) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        (o.orderId || o.id) === orderId ? { ...o, status: 'CANCELLED' } : o
+      )
+    );
+  };
 
   const statuses = ['ALL', ...Object.keys(STATUS_CONFIG)];
   const filtered = filter === 'ALL'
@@ -185,7 +233,11 @@ export default function OrderHistory() {
         {!loading && !error && filtered.length > 0 && (
           <div className="orders-list" aria-label="Orders list">
             {filtered.map((order) => (
-              <OrderCard key={order.orderId || order.id} order={order} />
+              <OrderCard
+                key={order.orderId || order.id}
+                order={order}
+                onCancelled={handleCancelled}
+              />
             ))}
           </div>
         )}

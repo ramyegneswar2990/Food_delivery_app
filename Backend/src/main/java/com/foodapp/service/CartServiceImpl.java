@@ -91,6 +91,48 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    public CartDTO updateItemQuantityByMenuId(Long userId, Long menuItemId, int quantity) {
+        Cart cart = getOrCreateCart(userId);
+
+        CartItem cartItem = cart.getItems().stream()
+                .filter(ci -> ci.getMenuItem().getId().equals(menuItemId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Cart item not found for menu item: " + menuItemId));
+
+        if (quantity <= 0) {
+            cart.getItems().remove(cartItem);
+        } else {
+            cartItem.setQuantity(quantity);
+            cartItem.calculateItemTotal();
+        }
+
+        Cart saved = cartRepository.save(cart);
+        return toCartDTO(saved);
+    }
+
+    @Override
+    public CartDTO updateItemQuantity(Long userId, Long cartItemId, int quantity) {
+        Cart cart = getOrCreateCart(userId);
+
+        CartItem cartItem = cart.getItems().stream()
+                .filter(ci -> ci.getId().equals(cartItemId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Cart item not found: " + cartItemId));
+
+        if (quantity <= 0) {
+            cart.getItems().remove(cartItem);
+        } else {
+            cartItem.setQuantity(quantity);
+            cartItem.calculateItemTotal();
+        }
+
+        Cart saved = cartRepository.save(cart);
+        return toCartDTO(saved);
+    }
+
+    @Override
     public void clearCart(Long userId) {
         Cart cart = getOrCreateCart(userId);
         cart.getItems().clear();

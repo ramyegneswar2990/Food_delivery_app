@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
@@ -10,14 +10,14 @@ export default function RestaurantMenu() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { refreshCart } = useCart();
+  const { cartItems, cartCount, refreshCart } = useCart();
   const addToast = useToast();
 
   const [restaurant, setRestaurant] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [addingItem, setAddingItem] = useState(null);
+  const [loadingItem, setLoadingItem] = useState(null); // item being added/changed
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [activeCategory, setActiveCategory] = useState(null);
 
@@ -45,6 +45,16 @@ export default function RestaurantMenu() {
     return () => controller.abort();
   }, [id]);
 
+  // Build a map: menuItemId → cartItem (so we know quantity per item)
+  const cartMap = useMemo(() => {
+    const map = {};
+    cartItems.forEach((ci) => {
+      const mid = ci.menuItemId || ci.menuItem?.id;
+      if (mid) map[mid] = ci;
+    });
+    return map;
+  }, [cartItems]);
+
   // Group menu items by category
   const categorized = menuItems.reduce((acc, item) => {
     const cat = item.category || 'Other';
@@ -61,22 +71,48 @@ export default function RestaurantMenu() {
     }
   }, [categories, activeCategory]);
 
+  // ── Add to cart ──────────────────────────────────────────────────────────
   const handleAddToCart = async (item) => {
     if (!isAuthenticated) {
       setShowLoginModal(true);
       return;
     }
-
     const itemId = item.id || item.menuItemId;
-    setAddingItem(itemId);
+    setLoadingItem(itemId);
     try {
       await api.post('/cart/add', { menuItemId: itemId, quantity: 1 });
-      refreshCart();
+      await refreshCart();
       addToast(`${item.name} added to cart! 🛒`, 'success');
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to add item to cart', 'error');
     } finally {
-      setAddingItem(null);
+      setLoadingItem(null);
+    }
+  };
+
+  // ── Update quantity ──────────────────────────────────────────────────────
+  const handleUpdateQuantity = async (item, delta) => {
+    if (!isAuthenticated) return;
+    const menuItemId = item.id || item.menuItemId;
+    const cartItem = cartMap[menuItemId];
+    if (!cartItem) return;
+
+    const newQty = (cartItem.quantity || 1) + delta;
+    setLoadingItem(menuItemId);
+    try {
+      if (newQty <= 0) {
+        // Remove via stable menuItemId endpoint
+        await api.put(`/cart/update-by-menu/${menuItemId}`, { quantity: 0 });
+        addToast(`${item.name} removed from cart`, 'info');
+      } else {
+        // Update via stable menuItemId endpoint
+        await api.put(`/cart/update-by-menu/${menuItemId}`, { quantity: newQty });
+      }
+      await refreshCart();
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to update cart', 'error');
+    } finally {
+      setLoadingItem(null);
     }
   };
 
@@ -178,8 +214,22 @@ export default function RestaurantMenu() {
                 <div className="menu-items-grid">
                   {categorized[cat].map((item) => {
                     const itemId = item.id || item.menuItemId;
+                    const cartItem = cartMap[itemId];
+                    const inCart = !!cartItem;
+                    const qty = cartItem?.quantity || 0;
+                    const isLoading = loadingItem === itemId;
+
                     return (
                       <article key={itemId} className="menu-item-card">
+                        {item.imageUrl && (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="item-image"
+                            loading="lazy"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        )}
                         <div className="item-info">
                           <h3 className="item-name">{item.name}</h3>
                           {item.description && (
@@ -189,19 +239,42 @@ export default function RestaurantMenu() {
                             ₹{parseFloat(item.price || 0).toFixed(2)}
                           </span>
                         </div>
-                        <button
-                          id={`add-to-cart-${itemId}`}
-                          className={`btn btn-primary btn-sm add-btn ${addingItem === itemId ? 'loading' : ''}`}
-                          onClick={() => handleAddToCart(item)}
-                          disabled={addingItem === itemId}
-                          aria-label={`Add ${item.name} to cart`}
-                        >
-                          {addingItem === itemId ? (
-                            <span className="btn-spinner" />
+
+                        {/* ── Quantity control / Add button ─────────────── */}
+                        <div className="item-action">
+                          {isLoading ? (
+                            <button className="btn btn-primary btn-sm add-btn loading" disabled>
+                              <span className="btn-spinner" />
+                            </button>
+                          ) : inCart ? (
+                            <div className="qty-control" role="group" aria-label={`Quantity of ${item.name}`}>
+                              <button
+                                className="qty-btn qty-minus"
+                                onClick={() => handleUpdateQuantity(item, -1)}
+                                aria-label={`Decrease quantity of ${item.name}`}
+                              >
+                                −
+                              </button>
+                              <span className="qty-value">{qty}</span>
+                              <button
+                                className="qty-btn qty-plus"
+                                onClick={() => handleUpdateQuantity(item, 1)}
+                                aria-label={`Increase quantity of ${item.name}`}
+                              >
+                                +
+                              </button>
+                            </div>
                           ) : (
-                            '+ Add'
+                            <button
+                              id={`add-to-cart-${itemId}`}
+                              className="btn btn-primary btn-sm add-btn"
+                              onClick={() => handleAddToCart(item)}
+                              aria-label={`Add ${item.name} to cart`}
+                            >
+                              + Add
+                            </button>
                           )}
-                        </button>
+                        </div>
                       </article>
                     );
                   })}
@@ -211,6 +284,22 @@ export default function RestaurantMenu() {
           )}
         </section>
       </div>
+
+      {/* ── Floating Go to Cart Bar ─────────────────────────────────────────── */}
+      {isAuthenticated && cartCount > 0 && (
+        <div className="floating-cart-bar" role="complementary" aria-label="Cart summary">
+          <span className="floating-cart-info">
+            🛒 {cartCount} item{cartCount !== 1 ? 's' : ''} in cart
+          </span>
+          <button
+            id="go-to-cart-btn"
+            className="btn btn-light btn-sm"
+            onClick={() => navigate('/cart')}
+          >
+            Go to Cart →
+          </button>
+        </div>
+      )}
 
       {/* Login Modal */}
       {showLoginModal && (

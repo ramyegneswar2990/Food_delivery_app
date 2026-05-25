@@ -58,6 +58,34 @@ public class CartController {
     }
 
     /**
+     * PUT /api/cart/update-by-menu/{menuItemId}
+     * Updates quantity using the STABLE menuItemId (avoids stale cartItemId issues).
+     * If quantity <= 0 the item is removed.
+     */
+    @PutMapping("/update-by-menu/{menuItemId}")
+    public ResponseEntity<ApiResponse<CartDTO>> updateByMenu(
+            @PathVariable Long menuItemId,
+            @RequestBody CartItemRequest request) {
+        Long userId = getAuthenticatedUserId();
+        CartDTO cart = cartService.updateItemQuantityByMenuId(userId, menuItemId, request.getQuantity());
+        return ResponseEntity.ok(ApiResponse.success(cart, "Cart updated"));
+    }
+
+    /**
+     * PUT /api/cart/update/{cartItemId}
+     * Updates the quantity of a specific cart item.
+     * If quantity <= 0, the item is removed.
+     */
+    @PutMapping("/update/{cartItemId}")
+    public ResponseEntity<ApiResponse<CartDTO>> updateItem(
+            @PathVariable Long cartItemId,
+            @RequestBody CartItemRequest request) {
+        Long userId = getAuthenticatedUserId();
+        CartDTO cart = cartService.updateItemQuantity(userId, cartItemId, request.getQuantity());
+        return ResponseEntity.ok(ApiResponse.success(cart, "Cart updated"));
+    }
+
+    /**
      * DELETE /api/cart/clear
      * Clears all items from the cart.
      */

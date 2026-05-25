@@ -50,39 +50,39 @@ export default function RestaurantCard({ restaurant }) {
   const imageUrl = getImageUrl(restaurant);
 
   return (
-    <article className="restaurant-card" aria-label={`${name} restaurant card`}>
-      <div className="card-image-wrapper">
-        <img
-          src={imageUrl}
-          alt={`${name} restaurant`}
-          className="card-image"
-          loading="lazy"
-          onError={(e) => { e.target.src = CUISINE_IMAGES.default; }}
-        />
-        <span className="cuisine-tag">{cuisine}</span>
-      </div>
-
-      <div className="card-body">
-        <h3 className="card-title">{name}</h3>
-        <div className="card-rating">
-          <StarRating rating={rating} />
+    <Link
+      to={`/restaurant/${restaurantIdentifier}`}
+      className="restaurant-card-link"
+      id={`restaurant-card-${restaurantIdentifier}`}
+      aria-label={`View menu for ${name}`}
+    >
+      <article className="restaurant-card" aria-label={`${name} restaurant card`}>
+        <div className="card-image-wrapper">
+          <img
+            src={imageUrl}
+            alt={`${name} restaurant`}
+            className="card-image"
+            loading="lazy"
+            onError={(e) => { e.target.src = CUISINE_IMAGES.default; }}
+          />
+          <span className="cuisine-tag">{cuisine}</span>
+          <div className="card-hover-overlay" aria-hidden="true">
+            <span className="card-hover-arrow">View Menu →</span>
+          </div>
         </div>
-        {address && (
-          <p className="card-address">
-            <span className="address-icon">📍</span> {address}
-          </p>
-        )}
-      </div>
 
-      <div className="card-footer">
-        <Link
-          to={`/restaurant/${restaurantIdentifier}`}
-          className="btn btn-primary btn-sm view-menu-btn"
-          id={`view-menu-${restaurantIdentifier}`}
-        >
-          View Menu →
-        </Link>
-      </div>
-    </article>
+        <div className="card-body">
+          <h3 className="card-title">{name}</h3>
+          <div className="card-rating">
+            <StarRating rating={rating} />
+          </div>
+          {address && (
+            <p className="card-address">
+              <span className="address-icon">📍</span> {address}
+            </p>
+          )}
+        </div>
+      </article>
+    </Link>
   );
 }

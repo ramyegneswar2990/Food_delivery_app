@@ -7,13 +7,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
- * CORS configuration allowing the React development server (http://localhost:3000)
- * to communicate with this backend.
+ * CORS configuration allowing both React dev servers to communicate with this backend.
  *
- * Allows all HTTP methods, all headers, and credentials (for JWT cookies/Authorization headers).
+ * Allowed origins:
+ *  - http://localhost:3000  (Create React App)
+ *  - http://localhost:5173  (Vite dev server)
+ *
+ * Allows all HTTP methods, all request headers, exposes Authorization header,
+ * and supports credentials (JWT Authorization header).
  */
 @Configuration
 public class CorsConfig {
@@ -22,16 +25,34 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        // Allow React dev server origin
-        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+        // Allow both CRA (3000) and Vite (5173) dev server origins
+        corsConfiguration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "http://localhost:5173"
+        ));
 
-        // Allow all standard HTTP methods
+        // Allow all standard HTTP methods including preflight OPTIONS
         corsConfiguration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"
         ));
 
-        // Allow all headers (Authorization, Content-Type, etc.)
-        corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
+        // Allow all request headers (Authorization, Content-Type, etc.)
+        corsConfiguration.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "X-Requested-With",
+                "Origin",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"
+        ));
+
+        // Expose Authorization header so the frontend can read the JWT token
+        corsConfiguration.setExposedHeaders(Arrays.asList(
+                "Authorization",
+                "Access-Control-Allow-Origin",
+                "Access-Control-Allow-Credentials"
+        ));
 
         // Allow credentials (required for Authorization header / JWT)
         corsConfiguration.setAllowCredentials(true);

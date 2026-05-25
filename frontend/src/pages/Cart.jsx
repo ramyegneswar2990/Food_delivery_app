@@ -7,23 +7,24 @@ import './Cart.css';
 
 export default function Cart() {
   const navigate = useNavigate();
-  const { setCartCount } = useCart();
+  const { refreshCart } = useCart();
   const addToast = useToast();
 
-  const [cartItems, setCartItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [removing, setRemoving] = useState(null);
+  const [cartItems, setCartItems]   = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState(null);
   const [placingOrder, setPlacingOrder] = useState(false);
-  const [clearing, setClearing] = useState(false);
+  const [updatingItem, setUpdatingItem] = useState(null); // menuItemId being updated
 
+  // ── Fetch cart ────────────────────────────────────────────────────────────
   const fetchCart = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await api.get('/cart');
-      const data = res.data?.data || res.data || [];
-      setCartItems(Array.isArray(data) ? data : []);
+      const cartDto = res.data?.data || res.data || {};
+      const items = cartDto.items || [];
+      setCartItems(Array.isArray(items) ? items : []);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load cart. Please try again.');
     } finally {
@@ -31,62 +32,73 @@ export default function Cart() {
     }
   };
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
+  useEffect(() => { fetchCart(); }, []);
 
   const grandTotal = cartItems.reduce((sum, item) => {
-    const price = item.price || item.menuItem?.price || 0;
-    const qty = item.quantity || 1;
+    const price = item.price || 0;
+    const qty   = item.quantity || 1;
     return sum + price * qty;
   }, 0);
 
-  const handleRemove = async (cartItemId) => {
-    setRemoving(cartItemId);
+  // ── Update quantity (uses stable menuItemId endpoint) ─────────────────────
+  const handleUpdateQty = async (item, delta) => {
+    const menuItemId = item.menuItemId;
+    const newQty     = (item.quantity || 1) + delta;
+    setUpdatingItem(menuItemId);
     try {
-      await api.delete(`/cart/remove/${cartItemId}`);
-      setCartItems((prev) => prev.filter((i) => (i.cartItemId || i.id) !== cartItemId));
-      setCartCount((c) => Math.max(0, c - 1));
-      addToast('Item removed from cart', 'info');
+      await api.put(`/cart/update-by-menu/${menuItemId}`, { quantity: newQty });
+      // Optimistically update local list
+      if (newQty <= 0) {
+        setCartItems((prev) => prev.filter((i) => i.menuItemId !== menuItemId));
+      } else {
+        setCartItems((prev) =>
+          prev.map((i) =>
+            i.menuItemId === menuItemId
+              ? { ...i, quantity: newQty, itemTotal: (i.price || 0) * newQty }
+              : i
+          )
+        );
+      }
+      // Sync global context so RestaurantMenu/Navbar badge updates
+      await refreshCart();
+      if (newQty <= 0) addToast('Item removed from cart', 'info');
     } catch (err) {
-      addToast(err.response?.data?.message || 'Failed to remove item', 'error');
+      addToast(err.response?.data?.message || 'Failed to update cart', 'error');
+      // Re-fetch to get accurate state
+      await fetchCart();
+      await refreshCart();
     } finally {
-      setRemoving(null);
+      setUpdatingItem(null);
     }
   };
 
+  // ── Clear cart ────────────────────────────────────────────────────────────
   const handleClearCart = async () => {
     if (!window.confirm('Clear all items from cart?')) return;
-    setClearing(true);
+    setLoading(true);
     try {
-      // Remove each item individually if no bulk clear endpoint exists
-      await Promise.all(
-        cartItems.map((item) =>
-          api.delete(`/cart/remove/${item.cartItemId || item.id}`)
-        )
-      );
+      await api.delete('/cart/clear');
       setCartItems([]);
-      setCartCount(0);
+      await refreshCart();
       addToast('Cart cleared', 'info');
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to clear cart', 'error');
     } finally {
-      setClearing(false);
+      setLoading(false);
     }
   };
 
+  // ── Place order ───────────────────────────────────────────────────────────
   const handlePlaceOrder = async () => {
-    if (cartItems.length === 0) {
-      addToast('Your cart is empty', 'error');
-      return;
-    }
+    if (cartItems.length === 0) { addToast('Your cart is empty', 'error'); return; }
     setPlacingOrder(true);
     try {
-      const res = await api.post('/orders/place');
+      const res       = await api.post('/orders/place');
       const orderData = res.data?.data || res.data;
-      const orderId = orderData?.orderId || orderData?.id || 'unknown';
+      const orderId   = orderData?.orderId || orderData?.id || 'unknown';
       setCartItems([]);
-      setCartCount(0);
+      // Sync context → resets RestaurantMenu add buttons immediately
+      await refreshCart();
       addToast('Order placed successfully! 🎉', 'success');
       navigate(`/order-confirmation/${orderId}`, { state: { order: orderData } });
     } catch (err) {
@@ -96,6 +108,7 @@ export default function Cart() {
     }
   };
 
+  // ── Loading / Error states ────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="page-wrapper">
@@ -120,6 +133,7 @@ export default function Cart() {
     );
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <main className="cart-page page-wrapper">
       <div className="container">
@@ -130,9 +144,8 @@ export default function Cart() {
               id="clear-cart-btn"
               className="btn btn-outline btn-sm"
               onClick={handleClearCart}
-              disabled={clearing}
             >
-              {clearing ? 'Clearing…' : '🗑 Clear Cart'}
+              🗑 Clear Cart
             </button>
           )}
         </div>
@@ -142,10 +155,7 @@ export default function Cart() {
             <span className="empty-icon">🛒</span>
             <h3>Your cart is empty</h3>
             <p>Looks like you haven&apos;t added anything yet!</p>
-            <button
-              className="btn btn-primary"
-              onClick={() => navigate('/')}
-            >
+            <button className="btn btn-primary" onClick={() => navigate('/')}>
               Browse Restaurants
             </button>
           </div>
@@ -154,36 +164,48 @@ export default function Cart() {
             {/* Items */}
             <section className="cart-items" aria-label="Cart items">
               {cartItems.map((item) => {
-                const itemId = item.cartItemId || item.id;
-                const name = item.name || item.menuItem?.name || 'Item';
-                const price = item.price || item.menuItem?.price || 0;
-                const qty = item.quantity || 1;
+                const menuItemId = item.menuItemId;
+                const name  = item.itemName || item.name || 'Unknown Item';
+                const price = item.price || 0;
+                const qty   = item.quantity || 1;
+                const isUpdating = updatingItem === menuItemId;
 
                 return (
-                  <article key={itemId} className="cart-item">
+                  <article key={menuItemId} className="cart-item">
                     <div className="cart-item-info">
                       <h3 className="cart-item-name">{name}</h3>
                       <div className="cart-item-meta">
                         <span className="cart-item-price">₹{parseFloat(price).toFixed(2)}</span>
-                        <span className="cart-item-qty">× {qty}</span>
-                        <span className="cart-item-total">
+                        <span className="cart-item-subtotal">
                           = ₹{(price * qty).toFixed(2)}
                         </span>
                       </div>
                     </div>
-                    <button
-                      id={`remove-item-${itemId}`}
-                      className={`btn btn-danger btn-sm remove-btn ${removing === itemId ? 'loading' : ''}`}
-                      onClick={() => handleRemove(itemId)}
-                      disabled={removing === itemId}
-                      aria-label={`Remove ${name} from cart`}
-                    >
-                      {removing === itemId ? (
-                        <span className="btn-spinner" />
-                      ) : (
-                        'Remove'
-                      )}
-                    </button>
+
+                    {/* Quantity controls + Remove */}
+                    <div className="cart-item-controls">
+                      <div className="qty-control" role="group" aria-label={`Quantity of ${name}`}>
+                        <button
+                          className="qty-btn qty-minus"
+                          onClick={() => handleUpdateQty(item, -1)}
+                          disabled={isUpdating}
+                          aria-label={`Decrease ${name}`}
+                        >
+                          {qty === 1 ? '🗑' : '−'}
+                        </button>
+                        <span className="qty-value">
+                          {isUpdating ? <span className="qty-spinner" /> : qty}
+                        </span>
+                        <button
+                          className="qty-btn qty-plus"
+                          onClick={() => handleUpdateQty(item, 1)}
+                          disabled={isUpdating}
+                          aria-label={`Increase ${name}`}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
                   </article>
                 );
               })}
@@ -196,7 +218,7 @@ export default function Cart() {
 
                 <div className="summary-rows">
                   <div className="summary-row">
-                    <span>Subtotal ({cartItems.length} items)</span>
+                    <span>Subtotal ({cartItems.length} item{cartItems.length !== 1 ? 's' : ''})</span>
                     <span>₹{grandTotal.toFixed(2)}</span>
                   </div>
                   <div className="summary-row">

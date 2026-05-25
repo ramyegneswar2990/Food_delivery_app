@@ -26,6 +26,18 @@ public interface CartService {
     CartDTO removeItem(Long userId, Long cartItemId);
 
     /**
+     * Updates the quantity of a cart item identified by menuItemId (stable).
+     * If quantity <= 0, the item is removed from the cart.
+     */
+    CartDTO updateItemQuantityByMenuId(Long userId, Long menuItemId, int quantity);
+
+    /**
+     * Updates the quantity of a specific cart item.
+     * Throws ResourceNotFoundException if the item is not found.
+     */
+    CartDTO updateItemQuantity(Long userId, Long cartItemId, int quantity);
+
+    /**
      * Clears all items from the user's cart.
      */
     void clearCart(Long userId);

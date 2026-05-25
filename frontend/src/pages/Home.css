@@ -193,3 +193,119 @@
     gap: var(--spacing-xs);
   }
 }
+
+/* ===== FILTER BAR ===== */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Cuisine chips */
+.cuisine-chips {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.cuisine-chip {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background: var(--bg);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.cuisine-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.cuisine-chip.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.35);
+}
+
+/* Right-side controls */
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--bg-dark);
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+.filter-select:focus,
+.filter-select:hover {
+  border-color: var(--primary);
+}
+
+.clear-filters-btn {
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid #e53e3e;
+  background: transparent;
+  color: #e53e3e;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.clear-filters-btn:hover {
+  background: #e53e3e;
+  color: white;
+}
+
+/* Filter bar responsive */
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .filter-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .filter-select {
+    flex: 1;
+  }
+}
+

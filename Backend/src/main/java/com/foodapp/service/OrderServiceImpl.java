@@ -119,10 +119,14 @@ public class OrderServiceImpl implements OrderService {
             throw new AccessDeniedException("You do not have permission to cancel this order");
         }
 
-        if (order.getStatus() == OrderStatus.DELIVERED || order.getStatus() == OrderStatus.CANCELLED) {
-            log.warn("Cancellation failed - order ID: {} is already in status: {}", orderId, order.getStatus());
-            throw new IllegalStateException("Order cannot be cancelled");
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            log.warn("Cancellation failed - order ID: {} is already cancelled", orderId);
+            throw new IllegalStateException("Order is already cancelled");
         }
+
+        // Eagerly load user to avoid LazyInitializationException in email/notification
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         String previousStatus = order.getStatus().name();
         order.setStatus(OrderStatus.CANCELLED);
@@ -137,18 +141,22 @@ public class OrderServiceImpl implements OrderService {
                 .build();
         orderHistoryRepository.save(history);
 
-        // Send order cancellation email asynchronously
-        emailService.sendOrderCancellationEmail(order.getUser(), savedOrder);
-
         // Save Notification record
         Notification notification = Notification.builder()
-                .user(order.getUser())
+                .user(user)
                 .type("ORDER_CANCELLED")
                 .message("Your order #" + savedOrder.getId() + " has been cancelled.")
                 .sent(true)
                 .sentAt(LocalDateTime.now())
                 .build();
         notificationRepository.save(notification);
+
+        // Send cancellation email — wrapped so a mail failure doesn't break cancel
+        try {
+            emailService.sendOrderCancellationEmail(user, savedOrder);
+        } catch (Exception e) {
+            log.warn("Failed to send cancellation email for order {}: {}", savedOrder.getId(), e.getMessage());
+        }
 
         return mapToOrderResponse(savedOrder);
     }
