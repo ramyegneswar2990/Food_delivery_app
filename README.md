@@ -118,3 +118,16 @@ A test user is automatically created when the backend boots up for the first tim
 - **Password:** `Test@123`
 
 *(You can also register a brand new account with your real email to test the Welcome and Order emails!)*
+
+---
+
+## 📸 Screenshots
+
+### Home Page
+![Home Page](Documentation/Home.png)
+
+### Order Placed
+![Order Placed](Documentation/Order_Placed.png)
+
+### Database Schema / View
+![Database](Documentation/Database.png)
